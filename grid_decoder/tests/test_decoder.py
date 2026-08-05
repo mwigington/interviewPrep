@@ -17,9 +17,9 @@ def test_build_grid_offset_point_pads_rows_and_columns():
     lines = grid.split("\n")
     assert len(lines) == 3
     assert all(len(line) == 6 for line in lines)
-    assert lines[0] == "      "
+    assert lines[0] == "     X"
     assert lines[1] == "      "
-    assert lines[2] == "     X"
+    assert lines[2] == "      "
 
 
 def test_build_grid_dense_2x2():
@@ -27,12 +27,12 @@ def test_build_grid_dense_2x2():
         (0, 0, "A"), (1, 0, "B"),
         (0, 1, "C"), (1, 1, "D"),
     ]
-    assert build_grid(entries) == "AB\nCD"
+    assert build_grid(entries) == "CD\nAB"
 
 
 def test_build_grid_sparse_positions_fill_with_spaces():
     entries = [(0, 0, "X"), (2, 1, "Y")]
-    assert build_grid(entries) == "X  \n  Y"
+    assert build_grid(entries) == "  Y\nX  "
 
 
 def test_build_grid_empty_input_returns_empty_string():
@@ -51,9 +51,19 @@ def test_build_grid_letter_H_shape():
     assert build_grid(entries) == expected
 
 
-def test_build_grid_top_left_is_origin():
-    entries = [(0, 0, "T"), (0, 2, "B")]
+def test_build_grid_origin_is_bottom_left():
+    entries = [(0, 0, "B"), (0, 2, "T")]
     assert build_grid(entries) == "T\n \nB"
+
+
+def test_build_grid_example_doc_letter_F():
+    entries = [
+        (0, 0, "█"),
+        (0, 1, "█"), (1, 1, "▀"), (2, 1, "▀"),
+        (0, 2, "█"), (1, 2, "▀"), (2, 2, "▀"), (3, 2, "▀"),
+    ]
+    expected = "\n".join(["█▀▀▀", "█▀▀ ", "█   "])
+    assert build_grid(entries) == expected
 
 
 HTML_X_CHAR_Y = """
@@ -113,4 +123,28 @@ def test_parse_entries_raises_when_no_table():
 
 def test_end_to_end_parse_then_build():
     entries = parse_entries(HTML_X_CHAR_Y)
-    assert build_grid(entries) == "AB\nC "
+    assert build_grid(entries) == "C \nAB"
+
+
+HTML_EXAMPLE_DOC = """
+<html><body>
+<p>This is an example document showing the format of the input data for the
+coding assessment exercise.</p>
+<table>
+  <tr><td>x-coordinate</td><td>Character</td><td>y-coordinate</td></tr>
+  <tr><td>0</td><td>█</td><td>0</td></tr>
+  <tr><td>0</td><td>█</td><td>1</td></tr>
+  <tr><td>0</td><td>█</td><td>2</td></tr>
+  <tr><td>1</td><td>▀</td><td>1</td></tr>
+  <tr><td>1</td><td>▀</td><td>2</td></tr>
+  <tr><td>2</td><td>▀</td><td>1</td></tr>
+  <tr><td>2</td><td>▀</td><td>2</td></tr>
+  <tr><td>3</td><td>▀</td><td>2</td></tr>
+</table>
+</body></html>
+"""
+
+
+def test_end_to_end_example_doc_renders_letter_F():
+    grid = build_grid(parse_entries(HTML_EXAMPLE_DOC))
+    assert grid == "\n".join(["█▀▀▀", "█▀▀ ", "█   "])

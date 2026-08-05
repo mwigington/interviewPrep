@@ -62,7 +62,8 @@ def build_grid(entries: Iterable[Entry]) -> str:
     height = max(y for _, y, _ in entries) + 1
     grid = [[" "] * width for _ in range(height)]
     for x, y, char in entries:
-        grid[y][x] = char
+        # y grows upward in the document, so y=0 is the last row printed.
+        grid[height - 1 - y][x] = char
     return "\n".join("".join(row) for row in grid)
 
 

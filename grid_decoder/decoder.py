@@ -62,7 +62,7 @@ def build_grid(entries: Iterable[Entry]) -> str:
     height = max(y for _, y, _ in entries) + 1
     grid = [[" "] * width for _ in range(height)]
     for x, y, char in entries:
-        grid[y][x] = char
+        grid[height-1-y][x] = char
     return "\n".join("".join(row) for row in grid)
 
 
@@ -81,3 +81,4 @@ if __name__ == "__main__":
         print("Usage: python decoder.py <google-doc-url>", file=sys.stderr)
         sys.exit(1)
     print_grid_from_doc(sys.argv[1])
+

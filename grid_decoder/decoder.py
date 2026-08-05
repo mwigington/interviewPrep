@@ -14,14 +14,14 @@ def _fetch_gdoc(url: str) -> str:
 
 def _identify_columns(header_row: list[str]) -> tuple[int, int, int]:
     x_idx = y_idx = char_idx = None
-    for idx, raw_cell in enumerate(header_row):
+    for column_idx, raw_cell in enumerate(header_row):
         header_cell = raw_cell.strip().lower()
         if header_cell.startswith("x"):
-            x_idx = i
+            x_idx = column_idx
         elif header_cell.startswith("y"):
-            y_idx = i
+            y_idx = column_idx
         else:
-            char_idx = i
+            char_idx = column_idx
     if x_idx is None or y_idx is None or char_idx is None:
         raise ValueError(f"Could not identify columns from headers: {header_row}")
     return x_idx, y_idx, char_idx
@@ -63,7 +63,7 @@ def _build_letter(entries: Iterable[Entry]) -> str:
     letter_grid = [[" "] * width for _ in range(height)]
     for x, y, char in entries:
         letter_grid[height-1-y][x] = char
-    letter = "\n".join("".join(row) for row in grid)
+    letter = "\n".join("".join(row) for row in letter_grid)
     return letter
 
 
@@ -81,5 +81,5 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python decoder.py <google-doc-url>", file=sys.stderr)
         sys.exit(1)
-    print_grid_from_doc(sys.argv[1])
+    print_gdoc_letter(sys.argv[1])
 

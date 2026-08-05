@@ -6,28 +6,28 @@ from bs4 import BeautifulSoup
 Entry = tuple[int, int, str]
 
 
-def fetch_doc(url: str) -> str:
+def _fetch_gdoc(url: str) -> str:
     response = requests.get(url, timeout=30)
     response.raise_for_status()
     return response.text
 
 
-def _identify_columns(header_cells: list[str]) -> tuple[int, int, int]:
+def _identify_columns(header_row: list[str]) -> tuple[int, int, int]:
     x_idx = y_idx = char_idx = None
-    for i, raw in enumerate(header_cells):
-        h = raw.strip().lower()
-        if h.startswith("x"):
+    for idx, raw_cell in enumerate(header_row):
+        header_cell = raw_cell.strip().lower()
+        if header_cell.startswith("x"):
             x_idx = i
-        elif h.startswith("y"):
+        elif header_cell.startswith("y"):
             y_idx = i
         else:
             char_idx = i
     if x_idx is None or y_idx is None or char_idx is None:
-        raise ValueError(f"Could not identify x/y/char columns from headers: {header_cells}")
+        raise ValueError(f"Could not identify columns from headers: {header_row}")
     return x_idx, y_idx, char_idx
 
 
-def parse_entries(html: str) -> list[Entry]:
+def _parse_table(html: str) -> list[Entry]:
     soup = BeautifulSoup(html, "html.parser")
     table = soup.find("table")
     if table is None:
@@ -37,8 +37,8 @@ def parse_entries(html: str) -> list[Entry]:
     if len(rows) < 2:
         raise ValueError("Table has no data rows")
 
-    header_texts = [c.get_text().strip() for c in rows[0].find_all(["td", "th"])]
-    x_idx, y_idx, char_idx = _identify_columns(header_texts)
+    header_row = [c.get_text().strip() for c in rows[0].find_all(["td", "th"])]
+    x_idx, y_idx, char_idx = _identify_columns(header_row)
 
     entries: list[Entry] = []
     for row in rows[1:]:
@@ -54,24 +54,25 @@ def parse_entries(html: str) -> list[Entry]:
     return entries
 
 
-def build_grid(entries: Iterable[Entry]) -> str:
+def _build_letter(entries: Iterable[Entry]) -> str:
     entries = list(entries)
     if not entries:
         return ""
     width = max(x for x, _, _ in entries) + 1
     height = max(y for _, y, _ in entries) + 1
-    grid = [[" "] * width for _ in range(height)]
+    letter_grid = [[" "] * width for _ in range(height)]
     for x, y, char in entries:
-        grid[height-1-y][x] = char
-    return "\n".join("".join(row) for row in grid)
+        letter_grid[height-1-y][x] = char
+    letter = "\n".join("".join(row) for row in grid)
+    return letter
 
 
-def print_grid_from_doc(url: str) -> str:
-    html = fetch_doc(url)
-    entries = parse_entries(html)
-    grid = build_grid(entries)
-    print(grid)
-    return grid
+def print_gdoc_letter(url: str) -> str:
+    html = _fetch_gdoc(url)
+    entries = _parse_table(html)
+    letter = _build_letter(entries)
+    print(letter)
+    return letter
 
 
 if __name__ == "__main__":
